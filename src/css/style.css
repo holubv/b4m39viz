@@ -1,12 +1,54 @@
 .tooltip {
-    position: absolute;
     text-align: center;
-    width: 60px;
-    height: 28px;
-    padding: 2px;
-    font: 12px sans-serif;
-    background: white;
-    border: 0px;
-    border-radius: 8px;
     pointer-events: none;
+    position: absolute;
+    font-weight: bold;
+    font-family: sans-serif;
+    font-size: 16px;
+    display: none;
+    background-color: white;
+    border-radius: 4px;
+    padding: 4px 8px;
+    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.16);
+    width: 34px;
+    height: 18px;
+}
+
+path.map {
+    stroke: #fff;
+    stroke-width: 1px;
+    fill: #d5d5d5;
+}
+
+circle {
+    fill: rgb(217, 91, 67);
+    fill-opacity: 0.3;
+    stroke: black;
+    stroke-opacity: 0.8;
+    stroke-width: 1;
+    cursor: pointer;
+}
+
+
+circle.highlight {
+    fill: rgb(243, 238, 10);
+    fill-opacity: 1;
+}
+
+path.flight {
+    stroke-width: 1px;
+    /*stroke: rgb(189, 34, 255);*/
+    stroke: black;
+    fill: none;
+    stroke-opacity: 0.05;
+}
+
+path.flight.highlight {
+    stroke: rgb(243, 238, 10);
+    stroke-opacity: 1;
+}
+
+path.flight.selected {
+    stroke: black;
+    stroke-opacity: 0.3;
 }
