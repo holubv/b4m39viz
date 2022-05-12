@@ -116,8 +116,8 @@ function drawAirports(airports) {
         .attr('r', a => {
             return airportSizeScale(a.size);
         })
-        .style('fill', a => airportSizeColorScale(1 - (0.85555 * a.size * a.size - 1.8243 * a.size + 1)))
-        .style('stroke', a => airportSizeColorScale(1 - (0.85555 * a.size * a.size - 1.8243 * a.size + 1)))
+        .style('fill', a => airportSizeColorScale(Math.min(8.5714 * a.size, 0.4301 * a.size + 0.5698)))
+        .style('stroke', a => airportSizeColorScale(Math.min(8.5714 * a.size, 0.4301 * a.size + 0.5698)))
         .each((airport, index, d) => {
             airports.find(Airport.byId(airport.id)).el = d[index];
         });
