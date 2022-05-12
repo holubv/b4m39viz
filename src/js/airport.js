@@ -187,10 +187,15 @@ export class AirportMap {
         }
 
         const thresholds = {
-            1: 0.1,
-            1.5: 0.05,
-            2: 0.005,
-            2.5: 0
+            //1: 0.1,
+            //1.5: 0.05,
+            //2: 0.005,
+            //2.5: 0
+            1: 0.2,
+            1.5: 0.1,
+            2: 0.075,
+            2.5: 0.03,
+            3: 0
         };
 
         let levels = Object.keys(thresholds).sort((a, b) => b - a);
