@@ -5,8 +5,8 @@
   "private": true,
   "source": "src/index.html",
   "scripts": {
-    "dev": "parcel",
-    "build": "parcel build --public-url .",
+    "dev": "parcel --no-hmr",
+    "build": "parcel build",
     "clean": "node clean.js"
   },
   "devDependencies": {
