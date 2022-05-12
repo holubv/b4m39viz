@@ -1,3 +1,5 @@
+import {DualHRangeBar} from 'dual-range-bar'
+
 export class AirportInfo {
 
     /**
@@ -182,50 +184,94 @@ export class AirportFilter {
     filtersWrapperEl = null;
 
     /**
-     * @type {HTMLInputElement}
+     * @type {DualHRangeBar}
      */
-    sizeSliderEl = null;
+    sizeBar = null;
 
     /**
-     * @type {HTMLInputElement}
+     * @type {HTMLDivElement}
      */
-    sizeNumEl = null;
+    sizeMinNumEl = null;
+
+    /**
+     * @type {HTMLDivElement}
+     */
+    sizeMaxNumEl = null;
+
+    /**
+     * @type {HTMLButtonElement}
+     */
+    sizeResetBtn = null;
+
+    sizeMin = 0;
+    sizeMax = 0;
 
     constructor(airportMap) {
 
         this.airportMap = airportMap;
 
         this.filtersWrapperEl = document.querySelector('.filters');
-        this.sizeSliderEl = document.getElementById('filter-size');
-        this.sizeNumEl = document.getElementById('filter-size-num');
+        //this.sizeSliderEl = document.getElementById('filter-size');
+        //this.sizeNumEl = document.getElementById('filter-size-num');
 
-        this.sizeSliderEl.addEventListener('change', e => {
-            this.updateSizeFilter(Number(this.sizeSliderEl.value));
+        this.sizeMinNumEl = document.querySelector('.filter-size-min');
+        this.sizeMaxNumEl = document.querySelector('.filter-size-max');
+        this.sizeResetBtn = document.querySelector('.filter-size-reset');
+
+        this.sizeBar = new DualHRangeBar(document.getElementById('filter-size-slider'));
+
+        // this.sizeSliderEl.addEventListener('change', e => {
+        //     this.updateSizeFilter(Number(this.sizeSliderEl.value));
+        // });
+        //
+        // this.sizeNumEl.addEventListener('change', e => {
+        //     this.updateSizeFilter(Number(this.sizeNumEl.value));
+        // });
+
+        this.sizeBar.addEventListener('update', e => {
+            let min = Math.floor(e.detail.lower);
+            let max = Math.floor(e.detail.upper);
+            if (min !== this.sizeMin || max !== this.sizeMax) {
+                this.sizeMin = min;
+                this.sizeMax = max;
+                this.updateSizeFilter(min, max);
+            }
         });
 
-        this.sizeNumEl.addEventListener('change', e => {
-            this.updateSizeFilter(Number(this.sizeNumEl.value));
+        this.sizeResetBtn.addEventListener('click', e => {
+            e.preventDefault();
+            this.sizeMin = 0;
+            this.sizeMax = this.airportMap.maxFlights;
+            this.sizeBar.lower = this.sizeMin;
+            this.sizeBar.upper = this.sizeMax;
+            this.updateSizeFilter(this.sizeMin, this.sizeMax);
         });
     }
 
-    updateSizeFilter(val) {
-        this.sizeSliderEl.value = '' + val;
-        this.sizeNumEl.value = '' + val;
+    updateSizeFilter(min, max) {
+        this.sizeMinNumEl.textContent = '' + Math.floor(min);
+        this.sizeMaxNumEl.textContent = '' + Math.floor(max);
 
         this.airportMap.airports.forEach(a => {
-            a.filteredOut = a.flights.length < val;
+            a.filteredOut = a.flights.length < min || a.flights.length > max;
         });
 
-        this.active = val > 0;
+        this.active = min > 0 || max < this.airportMap.maxFlights;
         this.airportMap.onFilterChange();
     }
 
     init() {
-        this.sizeSliderEl.max = '' + this.airportMap.maxFlights;
-        this.sizeSliderEl.value = '' + 0;
+        this.sizeBar.minSpan = 0.1;
 
-        this.sizeNumEl.max = '' + this.airportMap.maxFlights;
-        this.sizeNumEl.value = '' + 0;
+        this.sizeBar.lowerBound = 0;
+        this.sizeBar.lower = 0;
+        //this.sizeBar.maxSpan = this.airportMap.maxFlights;
+        this.sizeBar.upperBound = this.airportMap.maxFlights;
+        this.sizeBar.upper = this.airportMap.maxFlights;
+
+        this.sizeBar.update();
+
+        this.updateSizeFilter(0, this.airportMap.maxFlights);
     }
 
     show() {

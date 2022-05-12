@@ -110,6 +110,26 @@ path.flight.selected {
     stroke-opacity: 0.3;
 }
 
-.filters > div > * {
-    vertical-align: middle;
+.filters > div {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+#filter-size-slider {
+    position: relative;
+    width: 350px;
+    height: 30px;
+    margin: 0 20px;
+}
+
+.filter-size-min {
+    margin-left: 10px;
+    min-width: 30px;
+    text-align: right;
+}
+
+.filter-size-max {
+    margin-right: 10px;
+    min-width: 30px;
 }
