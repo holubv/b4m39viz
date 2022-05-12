@@ -3,10 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>B4M39VIZ - Airports</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/style.css">
     <script type="module" src="js/app.js"></script>
 </head>
 <body>
-
+<div class="content-wrapper">
+    <div class="airport-menu">
+        <input class="airport-search" placeholder="Search">
+        <ul class="airport-list">
+        </ul>
+    </div>
+    <div class="svg-wrapper"></div>
+</div>
+<div class="airport-info">
+    <h1><span class="name">Selected airport</span>
+        <button class="btn-close-detail">Close detail</button>
+    </h1>
+    <div class="n-of-flights">Number of flights: <span class="flights-num">12</span></div>
+    <div>
+        Destinations:
+        <ul class="destinations">
+            <li>AAA</li>
+            <li>BBB</li>
+            <li>CCC</li>
+        </ul>
+    </div>
+</div>
+<div class="filters">
+    <div>
+        <strong>Minimal Airport Size</strong>
+        <input type="range" min="0" max="100" value="0" id="filter-size">
+        <input type="number" min="0" max="100" value="0" id="filter-size-num">
+    </div>
+</div>
 </body>
 </html>

@@ -6,7 +6,8 @@
   "source": "src/index.html",
   "scripts": {
     "dev": "parcel",
-    "build": "parcel build --public-url ."
+    "build": "parcel build --public-url .",
+    "clean": "node clean.js"
   },
   "devDependencies": {
     "@parcel/packager-xml": "^2.5.0",

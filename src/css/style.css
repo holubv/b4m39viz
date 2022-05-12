@@ -1,9 +1,62 @@
+body {
+    font-family: 'Open Sans', sans-serif;
+    overflow-y: scroll;
+}
+
+.content-wrapper {
+    display: flex;
+}
+
+.content-wrapper .airport-menu {
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+}
+
+.content-wrapper .svg-wrapper {
+    flex-grow: 1;
+}
+
+.airport-menu .airport-search {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.airport-menu .airport-list {
+    list-style: none;
+    padding: 0;
+    overflow: auto;
+}
+
+.airport-menu .airport-list li {
+    list-style: none;
+    padding: 2px 0;
+    cursor: pointer;
+}
+
+.airport-menu .airport-list li:hover {
+    text-decoration: underline;
+}
+
+.airport-info {
+    display: none;
+}
+
+.airport-info .name {
+    vertical-align: middle;
+}
+
+.airport-info .btn-close-detail {
+    vertical-align: middle;
+}
+
+
 .tooltip {
     text-align: center;
     pointer-events: none;
     position: absolute;
     font-weight: bold;
-    font-family: sans-serif;
     font-size: 16px;
     display: none;
     background-color: white;
@@ -30,9 +83,13 @@ circle {
 }
 
 
-circle.highlight {
+circle.highlight  {
     fill: rgb(243, 238, 10);
     fill-opacity: 1;
+}
+
+circle.selected {
+    fill: rgb(243, 238, 10)!important;
 }
 
 path.flight {
@@ -51,4 +108,8 @@ path.flight.highlight {
 path.flight.selected {
     stroke: black;
     stroke-opacity: 0.3;
+}
+
+.filters > div > * {
+    vertical-align: middle;
 }

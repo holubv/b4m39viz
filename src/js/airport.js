@@ -1,4 +1,22 @@
+import {AirportInfo, AirportMenu, AirportFilter} from "./ui";
+
 export class AirportMap {
+
+    /**
+     * @type {AirportInfo}
+     */
+    infoBox = null;
+
+    /**
+     * @type {AirportMenu}
+     */
+    menu = null;
+
+    /**
+     * @type {AirportFilter}
+     */
+    filter = null;
+
     /**
      * @type {Airport[]}
      */
@@ -10,9 +28,38 @@ export class AirportMap {
     flights = [];
 
     /**
+     * Max number of flights on an airport
+     * @type {number}
+     */
+    maxFlights = 0;
+
+    /**
      * @type {HTMLDivElement}
      */
     tooltipEl = null;
+
+    /**
+     * @type {Airport|null}
+     */
+    selectedAirport = null;
+
+    /**
+     * @type {number}
+     */
+    zoomLevel = 1;
+
+    constructor() {
+        this.infoBox = new AirportInfo(this);
+        this.menu = new AirportMenu(this);
+        this.filter = new AirportFilter(this);
+    }
+
+    init() {
+        this.registerListeners();
+        this.updateZoomFilter();
+        this.menu.init();
+        this.filter.init();
+    }
 
     registerListeners() {
         this.airports.forEach(airport => {
@@ -37,28 +84,137 @@ export class AirportMap {
 
             airport.el.addEventListener('click', e => {
                 e.preventDefault();
-
-                this.airports.forEach(a => {
-                    a.el.style.display = null;
-                    if (a !== airport) {
-                        if (!a.hasDirectFlightConnection(airport)) {
-                            a.el.style.display = 'none';
-                        }
-                    }
-                });
-
-                this.flights.forEach(f => {
-                    f.el.style.display = null;
-                    f.el.classList.remove('selected');
-                    if (f.airport1 !== airport && f.airport2 !== airport) {
-                        f.el.style.display = 'none';
-                    } else {
-                        f.el.classList.add('selected');
-                    }
-                })
+                if (this.selectedAirport === airport) {
+                    // clicked on already selected airport -> remove selection
+                    this.selectAirport(null);
+                    return;
+                }
+                this.selectAirport(airport);
             })
         });
     }
+
+    onFilterChange() {
+
+        if (this.selectedAirport) {
+            // airport detail is shown, ignore filtering
+            return;
+        }
+
+        if (!this.filter.active) {
+            // filtering is not active
+            // return to default zoom filter
+            this.updateZoomFilter();
+            return;
+        }
+
+        this.airports.forEach(a => {
+            a.el.style.display = null;
+            a.flights.forEach(f => f.el.style.display = null);
+        });
+        this.airports.forEach(a => {
+            if (a.filteredOut) {
+                a.el.style.display = 'none';
+                a.flights.forEach(f => f.el.style.display = 'none');
+            }
+        });
+    }
+
+    selectAirport(airport) {
+
+        this.selectedAirport = airport;
+
+        if (airport === null) {
+            this.airports.forEach(a => {
+                a.el.style.display = null;
+                a.el.classList.remove('selected');
+            });
+            this.flights.forEach(f => {
+                f.el.style.display = null;
+                f.el.classList.remove('selected');
+            });
+            this.onFilterChange();
+            this.infoBox.hide();
+            this.filter.show();
+            return;
+        }
+
+        this.infoBox.showInfo(airport);
+        this.filter.hide();
+
+        this.airports.forEach(a => {
+            a.el.style.display = null;
+            a.el.classList.remove('selected');
+            if (a !== airport) {
+                if (!a.hasDirectFlightConnection(airport)) {
+                    a.el.style.display = 'none';
+                }
+            }
+        });
+
+        airport.el.classList.add('selected');
+
+        this.flights.forEach(f => {
+            f.el.style.display = null;
+            f.el.classList.remove('selected');
+            if (f.airport1 !== airport && f.airport2 !== airport) {
+                f.el.style.display = 'none';
+            } else {
+                f.el.classList.add('selected');
+            }
+        });
+    }
+
+    notifyZoom(k) {
+        if (k === this.zoomLevel) {
+            return;
+        }
+
+        this.zoomLevel = k;
+        this.updateZoomFilter();
+    }
+
+    updateZoomFilter() {
+
+        if (this.selectedAirport) {
+            // airport detail is shown, ignore zoom filter
+            return;
+        }
+
+        if (this.filter.active) {
+            // manual filter is active, ignore zoom filter
+            return;
+        }
+
+        const thresholds = {
+            1: 0.1,
+            1.5: 0.05,
+            2: 0.005,
+            2.5: 0
+        };
+
+        let levels = Object.keys(thresholds).sort((a, b) => b - a);
+        let level = 1;
+        for (let l of levels) {
+            if (this.zoomLevel > l) {
+                level = l;
+                break;
+            }
+        }
+
+        let threshold = thresholds[level];
+        this.airports.forEach(a => {
+            a.el.style.display = null;
+            a.flights.forEach(f => f.el.style.display = null);
+        });
+        this.airports.forEach(a => {
+            if (a.size < threshold) {
+                a.el.style.display = 'none';
+                a.flights.forEach(f => f.el.style.display = 'none');
+            }
+        });
+    }
+
 
     removeHighlights() {
         this.highlightAirports(null);
@@ -121,7 +277,7 @@ export class AirportMap {
             }
         });
 
-        let maxFlights = this.airports.reduce((acc, val) => {
+        this.maxFlights = this.airports.reduce((acc, val) => {
             if (val.flights.length > acc) {
                 return val.flights.length;
             }
@@ -129,7 +285,7 @@ export class AirportMap {
         }, 0);
 
         this.airports.forEach(airport => {
-            airport.size = airport.flights.length / maxFlights;
+            airport.size = airport.flights.length / this.maxFlights;
         });
     }
 }
@@ -149,12 +305,16 @@ export class Airport {
      */
     flights = [];
 
+    totalFlightsDistance = 0;
+
     size = 0;
 
     /**
      * @type {SVGCircleElement|null}
      */
     el = null;
+
+    filteredOut = false;
 
     /**
      * @param {Element} node
@@ -189,6 +349,28 @@ export class Airport {
         });
     }
 
+    /**
+     * @returns {Airport[]}
+     */
+    getDestinations() {
+        return this.flights.map(f => {
+            if (f.airport1.id === this.id) {
+                return f.airport2;
+            } else {
+                return f.airport1;
+            }
+        });
+    }
+
+    /**
+     * @param {Airport} airport
+     * @returns {Flight|undefined}
+     */
+    findFlightTo(airport) {
+        return this.flights.find(f => {
+            return f.airport1.id === airport.id || f.airport2.id === airport.id;
+        });
+    }
 }
 
 export class Flight {
@@ -203,9 +385,29 @@ export class Flight {
     airport2 = null;
 
     /**
+     * Distance between airports in meters
+     * @type {number}
+     */
+    distance = 0;
+
+    /**
      * @type {SVGPathElement|null}
      */
     el = null;
+
+    /**
+     * @param {Airport} airport
+     * @returns {Airport|null}
+     */
+    getAdjacentAirport(airport) {
+        if (this.airport1.id === airport.id) {
+            return this.airport2;
+        }
+        if (this.airport2.id === airport.id) {
+            return this.airport1;
+        }
+        return null;
+    }
 
     equals(f) {
         return this.airport1.id === f?.airport1?.id && this.airport2.id === f?.airport2?.id;

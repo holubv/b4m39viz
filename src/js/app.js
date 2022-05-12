@@ -1,15 +1,15 @@
 import * as d3 from 'd3';
 import {AirportMap, Airport, Flight} from './airport';
 
-const width = document.body.clientWidth;
+const svgWrapper = d3.select('div.svg-wrapper');
+
+const width = svgWrapper.node().clientWidth;
 const height = 600;
 
 const projection = d3.geoAlbersUsa()
     .translate([width / 2, height / 2]);
 
 const path = d3.geoPath(projection);
-
-const svgWrapper = d3.select('body').append('div');
 
 const svg = svgWrapper
     .append('svg')
@@ -22,14 +22,6 @@ const tooltipEl = svgWrapper
     .append('div')
     .attr('class', 'tooltip')
     .node();
-
-
-let zoom = d3.zoom()
-    .on('zoom', e => {
-        g.attr('transform', e.transform);
-    });
-
-svg.call(zoom);
 
 let forceEdgeBundle = () => {
 };
@@ -51,8 +43,6 @@ const main = async () => {
 
     await map.loadFromFile();
 
-    console.log(map.airports.find(a => a.flights.length === 0));
-
     map.tooltipEl = tooltipEl;
 
     map.airports.forEach(airport => {
@@ -62,10 +52,31 @@ const main = async () => {
         airport.y = p[1];
     });
 
+    map.flights.forEach(f => {
+        let rads = d3.geoDistance(
+            [f.airport1.lon, f.airport1.lat],
+            [f.airport2.lon, f.airport2.lat]
+        );
+
+        f.distance = rads * 6378100;
+    });
+
+    map.airports.forEach(a => {
+        a.totalFlightsDistance = a.flights.reduce((acc, curr) => acc + curr.distance, 0);
+    });
+
     drawFlights(map.airports, map.flights);
     drawAirports(map.airports);
 
-    map.registerListeners();
+    let zoom = d3.zoom()
+        .on('zoom', e => {
+            g.attr('transform', e.transform);
+            map.notifyZoom(e.transform.k);
+        });
+
+    svg.call(zoom);
+
+    map.init();
 
     console.log(map.airports);
 };
@@ -79,13 +90,7 @@ function drawMap(geoJson) {
         .enter()
         .append('path')
         .attr('class', 'map')
-        .attr('d', path)
-        // .style('stroke', '#fff')
-        // .style('stroke-width', '1')
-        // .style('fill', d => {
-        //
-        //     return 'rgb(213,222,217)';
-        // });
+        .attr('d', path);
 }
 
 function drawAirports(airports) {
@@ -113,18 +118,6 @@ function drawAirports(airports) {
         })
         .style('fill', a => airportSizeColorScale(a.size))
         .style('stroke', a => airportSizeColorScale(a.size))
-        //.style('fill', 'rgb(217,91,67)')
-        //.style('opacity', 0.85)
-        // .on('mouseover', (e, airport) => {
-        //     console.log(airport);
-        //     div.style('opacity', 1);
-        //     div.text(airport.name + ': ' + airport.flights.length)
-        //         .style('left', (e.pageX) + 'px')
-        //         .style('top', (e.pageY - 28) + 'px');
-        // })
-        // .on('mouseout', (e, airport) => {
-        //     div.style('opacity', 0);
-        // })
         .each((airport, index, d) => {
             airports.find(Airport.byId(airport.id)).el = d[index];
         });
@@ -164,11 +157,7 @@ function drawFlights(airports, flights) {
             .attr('id', 'edge-' + index)
             .attr('class', 'flight')
             .attr('d', d3line(edgePoints))
-            //.style('stroke-width', 1)
-            //.style('stroke', '#bd22ff')
-            //.style('fill', 'none')
-            //.style('stroke-opacity', 0.15)
-            .node(); //use opacity as blending
+            .node();
 
         flights[index].el = path;
     });
